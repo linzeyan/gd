@@ -176,7 +176,7 @@ func WestRequest(api, account, key, method, zoneId string) *http.Request {
 	data.Set("username", account)
 	data.Set("limit", "1000")
 	data.Set("time", now)
-	data.Set("token", md5encode(hashData))
+	data.Set("token", Md5encode(hashData))
 	switch method {
 	case "zone":
 		args := "/domain/?act=getdomains"

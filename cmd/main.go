@@ -23,6 +23,7 @@ Options:
 
 var (
 	ConfigFile = flag.String("c", "", "Specify Config file")
+	domain     = flag.String("d", "", "Specify domain")
 	operator   = flag.String("o", "nothing", "Fetch DNS once or hourly")
 	mySql      = new(gd.Sql)
 )
@@ -66,7 +67,12 @@ func fetch() {
 	token := viper.GetString("telegram.token")
 	chatId := viper.GetString("telegram.chatid")
 	west(westApi, westAccount, westKey)
-	checkWestDomain(list, token, chatId)
+	domains, err := mySql.QueryWestDomain(QueryWestDomainHold)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	checkWestDomain(list, domains, token, chatId)
 }
 
 func cron() {
@@ -74,6 +80,15 @@ func cron() {
 	job.Cron("0 * * * *").Do(fetch)
 	job.StartAsync()
 	select {}
+}
+
+func icp() {
+	westApi := viper.GetString("west.icp")
+	westAccount := viper.GetString("west.account")
+	westKey := viper.GetString("west.key")
+	token := viper.GetString("telegram.token")
+	chatId := viper.GetString("telegram.chatid")
+	checkWestIcp(westApi, westAccount, westKey, *domain, token, chatId)
 }
 
 func main() {
@@ -88,6 +103,8 @@ func main() {
 		fetch()
 	case "hourly":
 		cron()
+	case "icp":
+		icp()
 	default:
 		fmt.Print(usage)
 		flag.PrintDefaults()

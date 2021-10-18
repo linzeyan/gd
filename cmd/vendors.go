@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/linzeyan/gd"
@@ -68,12 +70,8 @@ func west(api, account, key string) {
 	}
 }
 
-func checkWestDomain(list []string, token, chatId string) {
-	domains, err := mySql.QueryWestDomain(QueryWestDomainHold)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+/* Check West newly lock domains */
+func checkWestDomain(list, domains []string, token, chatId string) {
 	diff := gd.CompareString(list, domains)
 	if len(diff) > 0 {
 		fmt.Println(diff)
@@ -87,4 +85,41 @@ func checkWestDomain(list []string, token, chatId string) {
 		}
 		gd.DoRequest(req)
 	}
+}
+
+type Icp struct {
+	Domain    string `json:"domain"`
+	Icp       string `json:"icp"`
+	IcpStatus string `json:"icpstatus"`
+}
+
+/* Check ICP status using West api */
+func checkWestIcp(api, account, key, domain, token, chatId string) {
+	var hash_data string = account + key + "domainname"
+	sig := gd.Md5encode(hash_data)
+	rawCmd := fmt.Sprintf("domainname\r\ncheck\r\nentityname:icp\r\ndomains:%s\r\n.\r\n", domain)
+	strCmd := url.QueryEscape(rawCmd)
+	uri := fmt.Sprintf(`%s/?userid=%s&strCmd=%s&versig=%s`, api, account, strCmd, sig)
+	req, err := http.NewRequest("POST", uri, strings.NewReader(``))
+	if err != nil {
+		fmt.Println("Resquest error.")
+		fmt.Println(err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	content, err := gd.WestDoRequest(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	re, _ := regexp.Compile("{.*}")
+	match := fmt.Sprintln(re.FindString(string(content)))
+	tgUri := gd.TelegramSendMessage(token, chatId, match)
+	tgReq, err := http.NewRequest("POST", tgUri, strings.NewReader(``))
+	if err != nil {
+		fmt.Println("Resquest error.")
+		fmt.Println(err)
+		return
+	}
+	gd.DoRequest(tgReq)
 }
