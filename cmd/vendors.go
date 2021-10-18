@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -114,7 +115,10 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	}
 	re, _ := regexp.Compile("{.*}")
 	match := fmt.Sprintln(re.FindString(string(content)))
-	tgUri := gd.TelegramSendMessage(token, chatId, match)
+	var icp Icp
+	json.Unmarshal([]byte(match), &icp)
+	msg := icp.Domain + ":" + icp.IcpStatus
+	tgUri := gd.TelegramSendMessage(token, chatId, msg)
 	tgReq, err := http.NewRequest("POST", tgUri, strings.NewReader(``))
 	if err != nil {
 		fmt.Println("Resquest error.")

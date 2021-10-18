@@ -83,6 +83,7 @@ func cron() {
 }
 
 func icp() {
+	readConf()
 	westApi := viper.GetString("west.icp")
 	westAccount := viper.GetString("west.account")
 	westKey := viper.GetString("west.key")
