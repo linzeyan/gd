@@ -18,14 +18,14 @@ Usage: gd [option] {once|hourly}
 
 Options:
 `
-	QueryWestDomainHold string = `select Domain from westZone where Hold = "0"`
 )
 
 var (
-	ConfigFile = flag.String("c", "", "Specify Config file")
-	domain     = flag.String("d", "", "Specify domain")
-	operator   = flag.String("o", "nothing", "Fetch DNS once or hourly")
-	mySql      = new(gd.Sql)
+	ConfigFile          = flag.String("c", "", "Specify Config file")
+	domain              = flag.String("d", "", "Specify domain")
+	operator            = flag.String("o", "nothing", "Fetch DNS once or hourly")
+	mySql               = new(gd.Sql)
+	QueryWestDomainHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
 )
 
 func readConf() {
