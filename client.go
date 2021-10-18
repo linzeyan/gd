@@ -61,7 +61,7 @@ func WestDoRequest(req *http.Request) (content []byte, err error) {
 	return
 }
 
-func md5encode(v string) string {
+func Md5encode(v string) string {
 	m := md5.Sum([]byte(v))
 	return hex.EncodeToString(m[:])
 }
