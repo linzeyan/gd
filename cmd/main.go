@@ -21,17 +21,17 @@ Options:
 )
 
 var (
-	ConfigFile          = flag.String("c", "", "Specify Config file")
-	domain              = flag.String("d", "", "Specify domain")
-	operator            = flag.String("o", "nothing", "Fetch DNS once or hourly")
-	mySql               = new(gd.Sql)
-	QueryWestDomainHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
+	configFile        = flag.String("c", "", "Specify Config file")
+	domain            = flag.String("d", "", "Specify domain")
+	operator          = flag.String("o", "nothing", "Fetch DNS or check ICP status.(once, hourly, icp)")
+	mySql             = new(gd.Sql)
+	queryWestZoneHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
 )
 
 func readConf() {
-	if *ConfigFile != "" {
+	if *configFile != "" {
 		viper.SetConfigType("yaml")
-		viper.SetConfigFile(*ConfigFile)
+		viper.SetConfigFile(*configFile)
 	} else {
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(".")
@@ -67,7 +67,7 @@ func fetch() {
 	token := viper.GetString("telegram.token")
 	chatId := viper.GetString("telegram.chatid")
 	west(westApi, westAccount, westKey)
-	domains, err := mySql.QueryWestDomain(QueryWestDomainHold)
+	domains, err := mySql.QueryWestDomain(queryWestZoneHold)
 	if err != nil {
 		fmt.Println(err)
 		return

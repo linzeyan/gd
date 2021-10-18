@@ -118,6 +118,7 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	var icp Icp
 	json.Unmarshal([]byte(match), &icp)
 	msg := icp.Domain + ":" + icp.IcpStatus
+	fmt.Println(msg)
 	tgUri := gd.TelegramSendMessage(token, chatId, msg)
 	tgReq, err := http.NewRequest("POST", tgUri, strings.NewReader(``))
 	if err != nil {
