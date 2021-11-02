@@ -139,7 +139,6 @@ func (my *Sql) CreateTable(query string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer my.Db.Close()
 }
 
 func (my *Sql) DropTable(tableName string) {
@@ -152,7 +151,6 @@ func (my *Sql) QueryData(query string) (err error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer my.Db.Close()
 	return
 }
 
