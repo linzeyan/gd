@@ -31,4 +31,22 @@ clean() {
     rm -rf ${TARGET}
 }
 
+createService() {
+    cat <<'EOF' >/lib/systemd/system/gd.service
+[Unit]
+Description=Fetch DNS
+After=network.target
+After=mysql.service
+
+[Service]
+WorkingDirectory=/data/dns
+ExecStart=/data/dns/gd -o hourly
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
 $1
