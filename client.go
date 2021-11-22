@@ -186,3 +186,7 @@ func (my *Sql) QueryWestDomain(query string) (result []string, err error) {
 	}
 	return
 }
+
+func NewDB() *Sql {
+	return new(Sql)
+}
