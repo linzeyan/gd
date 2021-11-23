@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -33,7 +35,7 @@ var (
 	queryWestZoneHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
 )
 
-func aws(keyId, key string) {
+func aws(keyId, key string, wg *sync.WaitGroup) {
 	var zone gd.AwsZoneView
 	mySql.DropTable(gd.TableAwsZone)
 	mySql.CreateTable(zone.CreateTableQuery())
@@ -51,9 +53,10 @@ func aws(keyId, key string) {
 			mySql.InsertData(data[j].InsertDataQuery())
 		}
 	}
+	wg.Done()
 }
 
-func cloudflare(api, key, mail string) {
+func cloudflare(api, key, mail string, wg *sync.WaitGroup) {
 	var zone gd.CloudflareZoneView
 	mySql.DropTable(gd.TableCloudflareZone)
 	mySql.CreateTable(zone.CreateTableQuery())
@@ -71,9 +74,10 @@ func cloudflare(api, key, mail string) {
 			mySql.InsertData(data[j].InsertData())
 		}
 	}
+	wg.Done()
 }
 
-func west(api, account, key string) {
+func west(api, account, key string, wg *sync.WaitGroup) {
 	var zone gd.WestZoneView
 	mySql.DropTable(gd.TableWestZone)
 	mySql.CreateTable(zone.CreateTableQuery())
@@ -91,19 +95,20 @@ func west(api, account, key string) {
 			mySql.InsertData(data[j].InsertData())
 		}
 	}
+	wg.Done()
 }
 
 /* Check West newly lock domains */
 func checkWestDomain(list, domains []string, token, chatId string) {
 	diff := gd.CompareString(list, domains)
 	if len(diff) > 0 {
-		fmt.Println(diff)
+		log.Println(diff)
 		msg := fmt.Sprintf("%v was hold by West", diff)
 		uri := gd.TelegramSendMessage(token, chatId, msg)
 		req, err := http.NewRequest("POST", uri, strings.NewReader(``))
 		if err != nil {
-			fmt.Println("Resquest error.")
-			fmt.Println(err)
+			log.Println("Resquest error.")
+			log.Println(err)
 			return
 		}
 		gd.DoRequest(req)
@@ -125,14 +130,14 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	uri := fmt.Sprintf(`%s/?userid=%s&strCmd=%s&versig=%s`, api, account, strCmd, sig)
 	req, err := http.NewRequest("POST", uri, strings.NewReader(``))
 	if err != nil {
-		fmt.Println("Resquest error.")
-		fmt.Println(err)
+		log.Println("Resquest error.")
+		log.Println(err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	content, err := gd.WestDoRequest(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	re, _ := regexp.Compile("{.*}")
@@ -140,12 +145,12 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	var icp Icp
 	json.Unmarshal([]byte(match), &icp)
 	msg := icp.Domain + ":" + icp.IcpStatus
-	fmt.Println(msg)
+	log.Println(msg)
 	tgUri := gd.TelegramSendMessage(token, chatId, msg)
 	tgReq, err := http.NewRequest("POST", tgUri, strings.NewReader(``))
 	if err != nil {
-		fmt.Println("Resquest error.")
-		fmt.Println(err)
+		log.Println("Resquest error.")
+		log.Println(err)
 		return
 	}
 	gd.DoRequest(tgReq)
@@ -164,24 +169,23 @@ func readConf() {
 	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(2)
 	}
 	viper.WatchConfig()
 }
 
 func fetch() {
+	log.Println("Start program")
 	readConf()
 	mySql.Connection()
 	/* AWS */
 	awsId := viper.GetString("aws.id")
 	awsKey := viper.GetString("aws.key")
-	aws(awsId, awsKey)
 	/* Cloudflare */
 	cfApi := viper.GetString("cloudflare.api")
 	cfKey := viper.GetString("cloudflare.key")
 	cfMail := viper.GetString("cloudflare.mail")
-	cloudflare(cfApi, cfKey, cfMail)
 	/* West Digital */
 	westApi := viper.GetString("west.api")
 	westAccount := viper.GetString("west.account")
@@ -189,13 +193,21 @@ func fetch() {
 	list := viper.GetStringSlice("west.hold")
 	token := viper.GetString("telegram.token")
 	chatId := viper.GetString("telegram.chatid")
-	west(westApi, westAccount, westKey)
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go aws(awsId, awsKey, &wg)
+	go cloudflare(cfApi, cfKey, cfMail, &wg)
+	go west(westApi, westAccount, westKey, &wg)
+	wg.Wait()
+	log.Println("Records fetch completed")
 	domains, err := mySql.QueryWestDomain(queryWestZoneHold)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	checkWestDomain(list, domains, token, chatId)
+	log.Println("Domain check completed")
 }
 
 func cron() {

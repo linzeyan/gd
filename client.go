@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,15 +20,15 @@ func DoRequest(req *http.Request) (content []byte, err error) {
 	var client = &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Response error.")
-		fmt.Println(err)
+		log.Println("Response error.")
+		log.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
 		content, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 	}
@@ -43,8 +44,8 @@ func WestDoRequest(req *http.Request) (content []byte, err error) {
 	var client = &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Response error.")
-		fmt.Println(err)
+		log.Println("Response error.")
+		log.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -53,8 +54,8 @@ func WestDoRequest(req *http.Request) (content []byte, err error) {
 		reader := simplifiedchinese.GB18030.NewDecoder().Reader(resp.Body)
 		content, err = ioutil.ReadAll(reader)
 		if err != nil {
-			fmt.Println("Content error.")
-			fmt.Println(err)
+			log.Println("Content error.")
+			log.Println(err)
 			return
 		}
 	}
@@ -111,20 +112,20 @@ func (my *Sql) Connection() *sql.DB {
 	var db *sql.DB
 	db, my.Err = sql.Open("mysql", my.dsnRoot)
 	if my.Err != nil {
-		fmt.Println(my.Err)
+		log.Println(my.Err)
 		return nil
 	}
 	/* Create database */
 	_, my.Err = db.Exec("CREATE DATABASE IF NOT EXISTS " + my.dbName)
 	if my.Err != nil {
-		fmt.Println(my.Err)
+		log.Println(my.Err)
 		return nil
 	}
 	db.Close()
 	/* Re-Connect to MySQL */
 	my.Db, my.Err = sql.Open("mysql", my.dsnNormal)
 	if my.Err != nil {
-		fmt.Println(my.Err)
+		log.Println(my.Err)
 		return nil
 	}
 	// defer my.Db.Close()
@@ -137,7 +138,7 @@ func (my *Sql) CreateTable(query string) {
 	/* Create Table */
 	_, err := my.Db.ExecContext(ctx, query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -149,7 +150,7 @@ func (my *Sql) DropTable(tableName string) {
 func (my *Sql) QueryData(query string) (err error) {
 	_, err = my.Db.Query(query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return
 }
@@ -158,12 +159,12 @@ func (my *Sql) InsertData(query string, val []interface{}) (err error) {
 	/* Insert data */
 	ins, err := my.Db.Prepare(query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	_, err = ins.Exec(val...)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer ins.Close()
 	return
@@ -172,14 +173,14 @@ func (my *Sql) InsertData(query string, val []interface{}) (err error) {
 func (my *Sql) QueryWestDomain(query string) (result []string, err error) {
 	rows, err := my.Db.Query(query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var domain string
 		if err := rows.Scan(&domain); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return nil, err
 		}
 		result = append(result, domain)

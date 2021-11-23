@@ -3,6 +3,7 @@ package gd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -97,12 +98,12 @@ func (cf *CloudflareZoneView) GetZones(api, key, mail string) ([]string, []Cloud
 	var id []string
 	content, err := DoRequest(CloudflareRequest(api, key, mail, "zone", ""))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, nil
 	}
 	err = json.Unmarshal(content, &zone)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, nil
 	}
 	for i := range zone.Result {
@@ -189,12 +190,12 @@ func (cf *CloudflareRecordView) GetRecords(api, key, mail, zoneId string) []Clou
 	var record CloudflareRecord
 	content, err := DoRequest(CloudflareRequest(api, key, mail, "record", zoneId))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	err = json.Unmarshal(content, &record)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	return record.Result
@@ -213,8 +214,8 @@ func CloudflareRequest(api, key, mail, method, zoneId string) *http.Request {
 	data := strings.NewReader(``)
 	req, err := http.NewRequest("GET", uri, data)
 	if err != nil {
-		fmt.Println("Resquest error.")
-		fmt.Println(err)
+		log.Println("Resquest error.")
+		log.Println(err)
 		return req
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")

@@ -3,6 +3,7 @@ package gd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -81,12 +82,12 @@ func (w *WestZoneView) GetZones(api, account, key string) ([]string, []WestZoneV
 	var id []string
 	content, err := DoRequest(WestRequest(api, account, key, "zone", ""))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, nil
 	}
 	err = json.Unmarshal(content, &zone)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, nil
 	}
 	for i := range zone.Data.Items {
@@ -157,12 +158,12 @@ func (w *WestRecordView) GetRecords(api, account, key, zoneId string) []WestReco
 	var record WestRecord
 	content, err := DoRequest(WestRequest(api, account, key, "record", zoneId))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	err = json.Unmarshal(content, &record)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	return record.Data.Items
@@ -188,8 +189,8 @@ func WestRequest(api, account, key, method, zoneId string) *http.Request {
 	}
 	req, err := http.NewRequest("GET", uri, strings.NewReader(data.Encode()))
 	if err != nil {
-		fmt.Println("Resquest error.")
-		fmt.Println(err)
+		log.Println("Resquest error.")
+		log.Println(err)
 		return req
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

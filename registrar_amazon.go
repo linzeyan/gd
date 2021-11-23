@@ -3,6 +3,7 @@ package gd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -83,17 +84,17 @@ func (a *AwsZoneView) GetZones(keyId, key string) ([]string, []AwsZoneView) {
 		}
 		resp, err := req.ListHostedZones(param)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return nil, nil
 		}
 		content, err := json.Marshal(resp)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return nil, nil
 		}
 		err = json.Unmarshal(content, &zone)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return nil, nil
 		}
 		for i := range zone.HostedZones {
@@ -174,17 +175,17 @@ func (a *AwsRecordView) GetRecords(keyId, key, zoneId string) []AwsRecordView {
 	var record AwsRecord
 	resp, err := req.ListResourceRecordSets(param)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	content, err := json.Marshal(resp)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	err = json.Unmarshal(content, &record)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	return record.ResourceRecordSets
@@ -201,8 +202,8 @@ func AwsRequest(keyId, key string) (client *route53.Route53) {
 		Credentials: credentials.NewStaticCredentials(keyId, key, ""),
 	})
 	if err != nil {
-		fmt.Println("Session error,")
-		fmt.Println(err)
+		log.Println("Session error,")
+		log.Println(err)
 		return
 	}
 	client = route53.New(sess)
