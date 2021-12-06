@@ -70,16 +70,16 @@ func (a *AwsZoneView) InsertDataQuery() (string, []interface{}) {
 }
 
 func (a *AwsZoneView) GetZones(keyId, key string) ([]string, []AwsZoneView) {
-	var zone AwsZone
+	var temp, zone AwsZone
 	var id []string
 	req := AwsRequest(keyId, key)
 	param := &route53.ListHostedZonesInput{
-		MaxItems: aws.String("1000"),
+		MaxItems: aws.String("100"),
 	}
-	for zone.IsTruncated || zone.NextMarker == "" {
-		if zone.IsTruncated {
+	for temp.IsTruncated || temp.NextMarker == "" {
+		if temp.IsTruncated {
 			param = &route53.ListHostedZonesInput{
-				Marker: aws.String(zone.NextMarker),
+				Marker: aws.String(temp.NextMarker),
 			}
 		}
 		resp, err := req.ListHostedZones(param)
@@ -92,14 +92,15 @@ func (a *AwsZoneView) GetZones(keyId, key string) ([]string, []AwsZoneView) {
 			log.Println(err)
 			return nil, nil
 		}
-		err = json.Unmarshal(content, &zone)
+		err = json.Unmarshal(content, &temp)
 		if err != nil {
 			log.Println(err)
 			return nil, nil
 		}
-		for i := range zone.HostedZones {
-			id = append(id, zone.HostedZones[i].Id)
+		for i := range temp.HostedZones {
+			id = append(id, temp.HostedZones[i].Id)
 		}
+		zone.HostedZones = append(zone.HostedZones, temp.HostedZones...)
 	}
 	return id, zone.HostedZones
 }
