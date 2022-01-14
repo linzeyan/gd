@@ -8,15 +8,15 @@ TARGET="bin"
 
 build() {
     # Linux
-    export GOOS=linux GOARCH=amd64
+    export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
     go build -a -trimpath -o ${TARGET}/${PACKAGE}_${VERSION}_${GOOS}_${GOARCH} cmd/*.go
-    export GOOS=linux GOARCH=arm64
+    export GOOS=linux GOARCH=arm64 CGO_ENABLED=0
     go build -a -trimpath -o ${TARGET}/${PACKAGE}_${VERSION}_${GOOS}_${GOARCH} cmd/*.go
     # Mac
-    GOOS=darwin GOARCH=amd64
+    GOOS=darwin GOARCH=amd64 CGO_ENABLED=0
     go build -a -trimpath -o ${TARGET}/${PACKAGE}_${VERSION}_${GOOS}_${GOARCH} cmd/*.go
     # Windows
-    GOOS=windows GOARCH=amd64
+    GOOS=windows GOARCH=amd64 CGO_ENABLED=0
     go build -a -trimpath -o ${TARGET}/${PACKAGE}_${VERSION}_${GOOS}_${GOARCH} cmd/*.go
 }
 
