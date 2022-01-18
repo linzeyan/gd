@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -13,10 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
-const (
-	TableAwsZone   = `awsZone`
-	TableAwsRecord = `awsRecord`
-)
+func Now() string {
+	return time.Now().Local().Format("15")
+}
 
 type AwsZone struct {
 	IsTruncated bool          `json:"IsTruncated"`
@@ -48,12 +48,14 @@ func (a *AwsZoneView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableAwsZone := `awsZone` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableAwsZone, tableFields)
 	return createQuery
 }
 
 func (a *AwsZoneView) InsertDataQuery() (string, []interface{}) {
 	e := reflect.ValueOf(a).Elem()
+	TableAwsZone := `awsZone` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableAwsZone)
 	var insertValue []interface{}
 	for i := 0; i < e.NumField(); i++ {
@@ -145,12 +147,14 @@ func (a *AwsRecordView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableAwsRecord := `awsRecord` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableAwsRecord, tableFields)
 	return createQuery
 }
 
 func (a *AwsRecordView) InsertDataQuery() (string, []interface{}) {
 	e := reflect.ValueOf(a).Elem()
+	TableAwsRecord := `awsRecord` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableAwsRecord)
 	var insertValue []interface{}
 	for i := 0; i < e.NumField(); i++ {

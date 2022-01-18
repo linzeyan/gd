@@ -9,11 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	TableCloudflareZone   = `cloudflareZone`
-	TableCloudflareRecord = `cloudflareRecord`
-)
-
 type CloudflareZone struct {
 	Result     []CloudflareZoneView `json:"result"`
 	Errors     []string             `json:"errors"`
@@ -58,12 +53,14 @@ func (cf *CloudflareZoneView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableCloudflareZone := `cloudflareZone` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableCloudflareZone, tableFields)
 	return createQuery
 }
 
 func (cf *CloudflareZoneView) InsertData() (string, []interface{}) {
 	e := reflect.ValueOf(cf).Elem()
+	TableCloudflareZone := `cloudflareZone` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableCloudflareZone)
 	// updateQuery := fmt.Sprintf(`UPDATE %s SET `, tableCloudflareZone)
 	var insertValue []interface{}
@@ -151,12 +148,14 @@ func (cf *CloudflareRecordView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableCloudflareRecord := `cloudflareRecord` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableCloudflareRecord, tableFields)
 	return createQuery
 }
 
 func (cf *CloudflareRecordView) InsertData() (string, []interface{}) {
 	e := reflect.ValueOf(cf).Elem()
+	TableCloudflareRecord := `cloudflareRecord` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableCloudflareRecord)
 	// updateQuery := fmt.Sprintf(`UPDATE %s SET `, tableCloudflareRecord)
 	var insertValue []interface{}

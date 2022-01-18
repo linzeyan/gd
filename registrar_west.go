@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-const (
-	TableWestZone   = `westZone`
-	TableWestRecord = `westRecord`
-)
-
 type WestZone struct {
 	Result   int    `json:"result"`
 	ClientId string `json:"clientid"`
@@ -59,12 +54,14 @@ func (w *WestZoneView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableWestZone := `westZone` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableWestZone, tableFields)
 	return createQuery
 }
 
 func (w *WestZoneView) InsertData() (string, []interface{}) {
 	e := reflect.ValueOf(w).Elem()
+	TableWestZone := `westZone` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableWestZone)
 	var insertValue []interface{}
 	for i := 0; i < e.NumField(); i++ {
@@ -136,12 +133,14 @@ func (w *WestRecordView) CreateTableQuery() string {
 		tableFields = tableFields + varName + " " + sqlType + ","
 	}
 	tableFields = strings.TrimRight(tableFields, ",")
+	TableWestRecord := `westRecord` + Now()
 	createQuery := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s(%s)`, TableWestRecord, tableFields)
 	return createQuery
 }
 
 func (w *WestRecordView) InsertData() (string, []interface{}) {
 	e := reflect.ValueOf(w).Elem()
+	TableWestRecord := `westRecord` + Now()
 	insertQuery := fmt.Sprintf(`INSERT %s SET `, TableWestRecord)
 	var insertValue []interface{}
 	for i := 0; i < e.NumField(); i++ {

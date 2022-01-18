@@ -28,19 +28,19 @@ Options:
 )
 
 var (
-	configFile        = flag.String("c", "", "Specify Config file")
-	domain            = flag.String("d", "", "Specify domain")
-	operator          = flag.String("o", "nothing", "Fetch DNS or check ICP status.(once, hourly, icp)")
-	version           = flag.Bool("v", false, "Print version info")
-	mySql             = gd.NewDB()
-	queryWestZoneHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
+	configFile = flag.String("c", "", "Specify Config file")
+	domain     = flag.String("d", "", "Specify domain")
+	operator   = flag.String("o", "nothing", "Fetch DNS or check ICP status.(once, hourly, icp)")
+	version    = flag.Bool("v", false, "Print version info")
+	mySql      = gd.NewDB()
 )
 
 var appVersion, appBuildTime, appCommit, appOS, appArch string
 
 func aws(keyId, key string, wg *sync.WaitGroup) {
 	var zone gd.AwsZoneView
-	mySql.DropTable(gd.TableAwsZone)
+	TableAwsZone := `awsZone` + gd.Now()
+	mySql.DropTable(TableAwsZone)
 	mySql.CreateTable(zone.CreateTableQuery())
 	id, resp := zone.GetZones(keyId, key)
 	for i := range resp {
@@ -48,7 +48,8 @@ func aws(keyId, key string, wg *sync.WaitGroup) {
 	}
 
 	var record gd.AwsRecordView
-	mySql.DropTable(gd.TableAwsRecord)
+	TableAwsRecord := `awsRecord` + gd.Now()
+	mySql.DropTable(TableAwsRecord)
 	mySql.CreateTable(record.CreateTableQuery())
 	for i := range id {
 		data := record.GetRecords(keyId, key, id[i])
@@ -61,7 +62,8 @@ func aws(keyId, key string, wg *sync.WaitGroup) {
 
 func cloudflare(api, key, mail string, wg *sync.WaitGroup) {
 	var zone gd.CloudflareZoneView
-	mySql.DropTable(gd.TableCloudflareZone)
+	TableCloudflareZone := `cloudflareZone` + gd.Now()
+	mySql.DropTable(TableCloudflareZone)
 	mySql.CreateTable(zone.CreateTableQuery())
 	id, resp := zone.GetZones(api, key, mail)
 	for i := range resp {
@@ -69,7 +71,8 @@ func cloudflare(api, key, mail string, wg *sync.WaitGroup) {
 	}
 
 	var record gd.CloudflareRecordView
-	mySql.DropTable(gd.TableCloudflareRecord)
+	TableCloudflareRecord := `cloudflareRecord` + gd.Now()
+	mySql.DropTable(TableCloudflareRecord)
 	mySql.CreateTable(record.CreateTableQuery())
 	for i := range id {
 		data := record.GetRecords(api, key, mail, id[i])
@@ -82,7 +85,8 @@ func cloudflare(api, key, mail string, wg *sync.WaitGroup) {
 
 func west(api, account, key string, wg *sync.WaitGroup) {
 	var zone gd.WestZoneView
-	mySql.DropTable(gd.TableWestZone)
+	TableWestZone := `westZone` + gd.Now()
+	mySql.DropTable(TableWestZone)
 	mySql.CreateTable(zone.CreateTableQuery())
 	id, resp := zone.GetZones(api, account, key)
 	for i := range resp {
@@ -90,7 +94,8 @@ func west(api, account, key string, wg *sync.WaitGroup) {
 	}
 
 	var record gd.WestRecordView
-	mySql.DropTable(gd.TableWestRecord)
+	TableWestRecord := `westRecord` + gd.Now()
+	mySql.DropTable(TableWestRecord)
 	mySql.CreateTable(record.CreateTableQuery())
 	for i := range id {
 		data := record.GetRecords(api, account, key, id[i])
@@ -204,6 +209,8 @@ func fetch() {
 	go west(westApi, westAccount, westKey, &wg)
 	wg.Wait()
 	log.Println("Records fetch completed")
+	table := `westZone` + gd.Now()
+	queryWestZoneHold := fmt.Sprintf(`select Domain from %s where Hold = "0"`, table)
 	domains, err := mySql.QueryWestDomain(queryWestZoneHold)
 	if err != nil {
 		log.Println(err)
