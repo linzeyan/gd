@@ -31,9 +31,12 @@ var (
 	configFile        = flag.String("c", "", "Specify Config file")
 	domain            = flag.String("d", "", "Specify domain")
 	operator          = flag.String("o", "nothing", "Fetch DNS or check ICP status.(once, hourly, icp)")
+	version           = flag.Bool("v", false, "Print version info")
 	mySql             = gd.NewDB()
 	queryWestZoneHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
 )
+
+var appVersion, appBuildTime, appCommit, appOS, appArch string
 
 func aws(keyId, key string, wg *sync.WaitGroup) {
 	var zone gd.AwsZoneView
@@ -227,12 +230,25 @@ func icp() {
 	checkWestIcp(westApi, westAccount, westKey, *domain, token, chatId)
 }
 
+func versionInfo() {
+	fmt.Println("Version:", appVersion)
+	fmt.Println("Build Time:", appBuildTime)
+	fmt.Println("Commit:", appCommit)
+	fmt.Println("OS:", appOS)
+	fmt.Println("Arch:", appArch)
+	os.Exit(0)
+}
+
 func main() {
 	flag.Usage = func() {
 		fmt.Fprint(os.Stderr, usage)
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if *version {
+		versionInfo()
+	}
 
 	switch *operator {
 	case "once":
