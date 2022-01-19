@@ -36,7 +36,7 @@ var (
 	queryWestZoneHold = fmt.Sprintf(`select Domain from %s where Hold = "0"`, gd.TableWestZone)
 )
 
-var appVersion, appBuildTime, appCommit, appOS, appArch string
+var appVersion, appBuildTime, appCommit, appGoVersion, appPlatform string
 
 func aws(keyId, key string, wg *sync.WaitGroup) {
 	var zone gd.AwsZoneView
@@ -231,11 +231,8 @@ func icp() {
 }
 
 func versionInfo() {
-	fmt.Println("Version:", appVersion)
-	fmt.Println("Build Time:", appBuildTime)
-	fmt.Println("Commit:", appCommit)
-	fmt.Println("OS:", appOS)
-	fmt.Println("Arch:", appArch)
+	fmt.Printf(`{"Version":"%s","BuildTime":"%s","GitCommit":"%s","GoVersion":"%s","Platform":"%s"}`,
+		appVersion, appBuildTime, appCommit, appGoVersion, appPlatform)
 	os.Exit(0)
 }
 
