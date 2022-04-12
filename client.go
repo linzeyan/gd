@@ -17,14 +17,18 @@ import (
 )
 
 func DoRequest(req *http.Request) (content []byte, err error) {
-	var client = &http.Client{}
+	var client = &http.Client{Transport: &http.Transport{
+		DisableKeepAlives: true,
+	}}
 	resp, err := client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		log.Println("Response error.")
 		log.Println(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
 		content, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -41,14 +45,18 @@ func TelegramSendMessage(token, chatId, msg string) string {
 
 /* For debug West use */
 func WestDoRequest(req *http.Request) (content []byte, err error) {
-	var client = &http.Client{}
+	var client = &http.Client{Transport: &http.Transport{
+		DisableKeepAlives: true,
+	}}
 	resp, err := client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		log.Println("Response error.")
 		log.Println(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
 		/* Convert GBK to UTF-8 */
 		reader := simplifiedchinese.GB18030.NewDecoder().Reader(resp.Body)
