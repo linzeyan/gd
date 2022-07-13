@@ -212,7 +212,7 @@ func CloudflareRequest(api, key, mail, method, zoneId string) *http.Request {
 		uri = api + args
 	}
 	data := strings.NewReader(``)
-	req, err := http.NewRequest("GET", uri, data)
+	req, err := http.NewRequest(http.MethodGet, uri, data)
 	if err != nil {
 		log.Println("Resquest error.")
 		log.Println(err)

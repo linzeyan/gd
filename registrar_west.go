@@ -187,7 +187,7 @@ func WestRequest(api, account, key, method, zoneId string) *http.Request {
 		uri = api + args
 		data.Set("domain", zoneId)
 	}
-	req, err := http.NewRequest("GET", uri, strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodGet, uri, strings.NewReader(data.Encode()))
 	if err != nil {
 		log.Println("Resquest error.")
 		log.Println(err)
