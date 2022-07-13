@@ -113,7 +113,7 @@ func checkWestDomain(list, domains []string, token, chatId string) {
 		log.Println(diff)
 		msg := fmt.Sprintf("%v was hold by West", diff)
 		uri := gd.TelegramSendMessage(token, chatId, msg)
-		req, err := http.NewRequest("POST", uri, strings.NewReader(``))
+		req, err := http.NewRequest(http.MethodPost, uri, strings.NewReader(``))
 		if err != nil {
 			log.Println("Resquest error.")
 			log.Println(err)
@@ -136,7 +136,7 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	rawCmd := fmt.Sprintf("domainname\r\ncheck\r\nentityname:icp\r\ndomains:%s\r\n.\r\n", domain)
 	strCmd := url.QueryEscape(rawCmd)
 	uri := fmt.Sprintf(`%s/?userid=%s&strCmd=%s&versig=%s`, api, account, strCmd, sig)
-	req, err := http.NewRequest("POST", uri, strings.NewReader(``))
+	req, err := http.NewRequest(http.MethodPost, uri, strings.NewReader(``))
 	if err != nil {
 		log.Println("Resquest error.")
 		log.Println(err)
@@ -155,7 +155,7 @@ func checkWestIcp(api, account, key, domain, token, chatId string) {
 	msg := icp.Domain + ":" + icp.IcpStatus
 	log.Println(msg)
 	tgUri := gd.TelegramSendMessage(token, chatId, msg)
-	tgReq, err := http.NewRequest("POST", tgUri, strings.NewReader(``))
+	tgReq, err := http.NewRequest(http.MethodPost, tgUri, strings.NewReader(``))
 	if err != nil {
 		log.Println("Resquest error.")
 		log.Println(err)
